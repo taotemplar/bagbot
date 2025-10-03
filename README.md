@@ -3,6 +3,7 @@ Bot for accumulating alpha in the Bittensor Alpha Group
 
 USE AT YOUR OWN RISK!  There are no guarantees!
 
+
 Setup:
 
 1. Clone the repository:
@@ -33,9 +34,15 @@ source ~/.bagbotvirtualenv/bin/activate
 pip3 install -r requirements.txt
 ```
 
-5. Setup your buy/sell settings by copying the top part of the `bagbot_settings.py` file to a new file: `bagbot_settings_overrides.py` .   DO NOT copy the bottom 4 lines.
+5. Create a new wallet:
 
-6. In `bagbot_settings_overrides.py`:
+```
+btcli w create --wallet.name bagbot
+```
+
+6. Setup your buy/sell settings by copying the top part of the `bagbot_settings.py` file to a new file: `bagbot_settings_overrides.py` .   DO NOT copy the bottom 4 lines.
+
+7. In `bagbot_settings_overrides.py`:
  
 * Change the `WALLET_PW` variable to your wallet's password.
 * Edit the file as desired, there are notes about what the variables do in the file
