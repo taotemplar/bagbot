@@ -7,19 +7,22 @@ Be very careful before using this bot.  There are no guarantees nor instructions
 
 ```git clone https://github.com/taotemplar/bagbot.git```
 
-2. Install virtualenv:
+2. Install and create a python virtualenv:
 
-`pip3 install virtualenv`
+```
+pip3 install virtualenv
+virtualenv ~/.bagbotvirtualenv/
+```
 
-3. Create a new virtualenv:
-
-`virtualenv ~/.bagbotvirtualenv/`
-
-4. Activate it:
+3. Activate your virtualenv:
 
 `source ~/.bagbotvirtualenv/bin/activate`
 
+4. Enter the bagbot directory:
 
+`cd bagbot`
+
+5. 
 
 
 Run with `python3 bagbot.py`
