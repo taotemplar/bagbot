@@ -68,8 +68,7 @@ class BittensorUtility():
 
 
     async def setupWallet(self):
-        with open(bagbot_settings.WALLET_PW_FILE, 'r') as f:
-            wallet_pw = f.read().strip()
+        wallet_pw = bagbot_settings.WALLET_PW
 
         self.wallet = bt.wallet(name=bagbot_settings.WALLET_NAME)
         self.wallet.create_if_non_existent()

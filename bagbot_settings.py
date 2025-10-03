@@ -1,7 +1,7 @@
 
 STAKE_ON_VALIDATOR = "5G3wMP3g3d775hauwmAZioYFVZYnvw6eY46wkFy8hEWD5KP3" #Replace with the hotkey of the validator you want to stake with (copy from https://taostats.io/validators )
 
-WALLET_PW_FILE = '/home/user/.wallet_password.txt' #Replace with full location of a file containing the password for your wallet
+WALLET_PW = 'your_wallet_password' #Replace with your wallet's password that you entered into btcli
 WALLET_NAME = 'bagbot' #The name of the wallet created in btcli
 
 MAX_TAO_PER_BUY = 0.02 #May increase as desired, I wouldnt reduce it
