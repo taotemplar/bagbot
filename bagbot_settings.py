@@ -17,8 +17,8 @@ SUBNET_SETTINGS = {
 # Subnet 23 settings:
 23: {'buy_lower': 0.000011,
      'buy_upper': 0.000015,
-     'sell_lower': 0.0019,
-     'sell_upper': 0.003,
+     'sell_lower': 0.5,
+     'sell_upper': 1,
      'max_alpha': 10000},
 }
 
