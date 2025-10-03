@@ -44,17 +44,6 @@ Thumbs.db
 *.mov
 *.wmv
 
-_ticker_data/*
-apiKeysOverrides.py
-apiKeysOverridesHost.py
-apiKeysDict.py
-hostScripts/server*.py
-outputfile.txt
 .wallet_pw
-staking.log
 settings_overrides.py
-
-.vscode/
-
-data_collector/override.ini
-override.ini
+bagbot_settings_overrides.py
