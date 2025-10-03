@@ -1,0 +1,4 @@
+websockets
+rich
+bittensor
+bittensor-cli
