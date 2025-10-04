@@ -1,61 +1,59 @@
-# bagbot
-Bot for accumulating alpha in the Bittensor Alpha Group
+# Bagbot
+A bot for accumulating alpha in the Bittensor Alpha Group.
 
-USE AT YOUR OWN RISK!  There are no guarantees!
+> **⚠️ Warning:** Use at your own risk! There are no guarantees! Try with small amounts first!!
 
+## Setup Instructions
 
-Setup:
+Follow these steps to set up and run Bagbot:
 
-1. Clone the repository:
+1. **Clone the Repository**  
+   ```bash
+   git clone https://github.com/taotemplar/bagbot.git
+   ```
 
-```
-git clone https://github.com/taotemplar/bagbot.git
-```
+2. **Navigate to the Bagbot Directory**  
+   ```bash
+   cd bagbot
+   ```
 
+3. **Set Up a Python Virtual Environment**  
+   Install, create, and activate a Python virtual environment:
+   ```bash
+   pip3 install virtualenv
+   virtualenv ~/.bagbotvirtualenv/
+   source ~/.bagbotvirtualenv/bin/activate
+   ```
 
-2. Enter the bagbot directory:
+4. **Install Requirements**  
+   ```bash
+   pip3 install -r requirements.txt
+   ```
 
-```
-cd bagbot
-```
+5. **Create a New Wallet**  
+   ```bash
+   btcli w create --wallet.name bagbot
+   ```
 
-3. Install, create, and activate your python virtualenv:
+6. **Fund the Wallet**  
+   Send a small amount to the wallet address. To find the address, run the following command and look for the `ss58_address` (e.g., `5Dso...xAi3`):
+   ```bash
+   btcli w list
+   ```
 
-```
-pip3 install virtualenv
-virtualenv ~/.bagbotvirtualenv/
-source ~/.bagbotvirtualenv/bin/activate
-```
+7. **Configure Buy/Sell Settings**  
+   Copy the top part of the `bagbot_settings.py` file to a new file named `bagbot_settings_overrides.py`.  
+   **Note:** Do **not** copy the bottom 4 lines.
 
-4. Install the requirements:
+8. **Edit the Settings File**  
+   In `bagbot_settings_overrides.py`:
+   - Update the `WALLET_PW` variable with your wallet's password.
+   - Modify other settings as desired. The file includes notes explaining each variable.
 
-```
-pip3 install -r requirements.txt
-```
+## Running the Bot
 
-5. Create a new wallet:
-
-```
-btcli w create --wallet.name bagbot
-```
-
-6. Send a small amount to the wallet address, to find the address run and look for the ss58_address (eg: 5Dso...xAi3):
-
-```
-btcli w list
-```
-
-7. Setup your buy/sell settings by copying the top part of the `bagbot_settings.py` file to a new file: `bagbot_settings_overrides.py` .   DO NOT copy the bottom 4 lines.
-
-8. In `bagbot_settings_overrides.py`:
- 
-* Change the `WALLET_PW` variable to your wallet's password.
-* Edit the file as desired, there are notes about what the variables do in the file
-
-
-To start the bot, activate your virtualenv and run by doing:
-
-```
+To start the bot, activate the virtual environment and run the script:
+```bash
 source ~/.bagbotvirtualenv/bin/activate
 python3 bagbot.py
 ```
