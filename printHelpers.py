@@ -151,19 +151,19 @@ def print_table_rich(
         buy_threshold = f"{buy_threshold:.6f}" if buy_threshold else ''
         sell_threshold = f"{sell_threshold:.6f}" if sell_threshold else ''
         high_buy = botInstance.determine_buy_at_for_amount(botInstance.subnet_grids.get(netuid,{}), 0) or ''
-        high_buy = f"{high_buy:.4f}" if high_buy else ''
+        high_buy = f"{high_buy:.5f}" if high_buy else ''
 
         low_buy = None
         if botInstance.subnet_grids.get(netuid,{}).get('buy_upper'):
             low_buy = botInstance.determine_buy_at_for_amount(botInstance.subnet_grids.get(netuid,{}), botInstance.subnet_grids.get(netuid,{}).get('max_alpha'))
-        low_buy = f"{low_buy:.4f}" if low_buy else ''
+        low_buy = f"{low_buy:.5f}" if low_buy else ''
 
         high_sell = bagbot_settings.SUBNET_SETTINGS.get(netuid,{}).get('sell_upper') or bagbot_settings.SUBNET_SETTINGS.get(netuid,{}).get('sell_lower') or ''
-        high_sell = f"{high_sell:.4f}" if high_sell else ''
+        high_sell = f"{high_sell:.5f}" if high_sell else ''
         low_sell = None
         if botInstance.subnet_grids.get(netuid,{}).get('sell_lower'):
             low_sell = botInstance.determine_sell_at_for_amount(botInstance.subnet_grids.get(netuid,{}), botInstance.subnet_grids.get(netuid,{}).get('max_alpha'))
-        low_sell = f"{low_sell:.4f}" if low_sell else ''
+        low_sell = f"{low_sell:.5f}" if low_sell else ''
 
         max_stake_amt = botInstance.subnet_grids.get(netuid,{}).get('max_alpha',0)
         stake_amount_str = f"{stake_amt:.0f}"

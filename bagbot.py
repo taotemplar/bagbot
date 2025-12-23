@@ -268,6 +268,9 @@ class BittensorUtility():
                     self.subnet_grids[subnet_id]['buy_upper'] = self.subnet_grids[subnet_id]['buy']
                 else:
                     raise InvalidSettings(f'"buy_upper" missing for subnet {subnet_id} in bagbot_settings.SUBNET_SETTINGS')
+            if self.subnet_grids[subnet_id].get('sell_upper') is not None and self.subnet_grids[subnet_id].get('sell_lower') is not None and \
+               self.subnet_grids[subnet_id].get('sell_upper') < self.subnet_grids[subnet_id].get('sell_lower'):
+                raise InvalidSettings(f'"sell_upper" is lower than "sell_lower" for subnet {subnet_id} in bagbot_settings.SUBNET_SETTINGS')
             if not self.subnet_grids[subnet_id].get('max_alpha'):
                 raise InvalidSettings(f'"max_alpha" missing for subnet {subnet_id} in bagbot_settings.SUBNET_SETTINGS')
             if self.subnet_grids[subnet_id]['buy_upper'] > self.subnet_grids[subnet_id]['sell_lower']:
@@ -700,11 +703,15 @@ class BittensorUtility():
                 else:
                     logger.info(f"Failed to unstake {str(sellTrade)}  sn{subnet_netuid} ({str(unstake_result)})")
             except asyncio.TimeoutError:
-                logger.error(f"Timeout unstaking from subnet {subnet_netuid} after 60s")
-            except asyncio.exceptions.CancelledError as e:
-                print(f'ERROR unstaking - cancelled error')
+                msg = f"Timeout unstaking from subnet {subnet_netuid} after 60s"
+                print(msg)
+                logger.error(msg)
+                self.sub = await my_async_subtensor("finney")
+            except (asyncio.exceptions.CancelledError, asyncio.exceptions.InvalidStateError) as e:
+                print(f'ERROR unstaking - {e}... continuing')
                 logger.error(traceback.format_exc())
                 logger.error(f"Failed to unstake from subnet {subnet_netuid}: {e}")
+                self.sub = await my_async_subtensor("finney")
             except Exception as e:
                 print(f'ERROR unstaking')
                 logger.error(traceback.format_exc())
