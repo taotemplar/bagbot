@@ -10,68 +10,45 @@ A bot for accumulating alpha in the Bittensor Alpha Group.
 
 Follow these steps to set up and run Bagbot:
 
-1. **Clone the Repository**  
-   ```bash
-   git clone https://github.com/taotemplar/bagbot.git
-   ```
+#### 1. Clone the repository, navigate to bagbot repository and set up a python virtual environment
+*Linux (Windows)*
+```
+sudo apt update && sudo apt install -y python3.10 python3-pip \
+&& git clone https://github.com/taotemplar/bagbot.git \
+&& cd bagbot \
+&& python3.10 -m venv .bagbotvirtualenv \
+&& source .bagbotvirtualenv/bin/activate
+```
+*MacOS*
+```
+brew install python@3.10 \
+&& git clone https://github.com/taotemplar/bagbot.git \
+&& cd bagbot \
+&& python3.10 -m venv .bagbotvirtualenv \
+&& source .bagbotvirtualenv/bin/activate
+```
 
-2. **Navigate to the Bagbot Directory**  
-   ```bash
-   cd bagbot
-   ```
-
-3. **Set Up a Python Virtual Environment**
-
-   Install, create, and activate a Python virtual environment on **Windows**:
-   ```bash
-   pip3 install virtualenv
-   virtualenv ~/.bagbotvirtualenv/
-   source ~/.bagbotvirtualenv/bin/activate
-   ```
-   on **MacOS**:
-   ```bash
-   pip3 install virtualenv
-   python3.10 venv .bagbotvirtualenv
-   source .bagbotvirtualenv/bin/activate
-   ```
-
-   ***Note: At the time of writing, Bittensor CLI is compatible with python versions from 3.9.0 to 3.12.0.***
-
-   Check the python version:
-   ```bash
-   python3 --version
-   ```
-   Install compatible python version and pip3 on **windows wsl**:
-   ```bash
-   sudo apt install python3.10
-   ```
-   on **MacOS**:
-   ```bash
-   brew install python3.10
-   echo 'export PATH="/opt/homebrew/opt/python@3.10/bin:$PATH"' >> ~/.zshrc
-   ```
-
-4. **Install Requirements**  
+#### 4. Install Requirements 
    ```bash
    pip3 install -r requirements.txt
    ```
 
-5. **Create a New Wallet**  
+#### 5. Create a New Wallet
    ```bash
    btcli w create --wallet.name bagbot
    ```
 
-6. **Fund the Wallet**  
+#### 6. Fund the Wallet 
    Send a small amount to the wallet address. To find the address, run the following command and look for the `ss58_address` (e.g., `5Dso...xAi3`):
    ```bash
    btcli w list
    ```
 
-7. **Configure Buy/Sell Settings**  
+#### 7. Configure Buy/Sell Settings
    Copy the top part of the `bagbot_settings.py` file to a new file named `bagbot_settings_overrides.py`.  
    **Note:** Do **not** copy the bottom 4 lines.
 
-8. **Edit the Settings File**  
+#### 8. Edit the Settings File
    In `bagbot_settings_overrides.py`:
    - Update the `WALLET_PW` variable with your wallet's password.
    - Modify other settings as desired. The file includes notes explaining each variable.
