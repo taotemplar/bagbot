@@ -5,10 +5,11 @@ STAKE_ON_VALIDATOR = "5G3wMP3g3d775hauwmAZioYFVZYnvw6eY46wkFy8hEWD5KP3" #(Opente
 WALLET_PW = 'your_wallet_password' #Replace with your wallet's password that you entered into btcli
 WALLET_NAME = 'bagbot' #The name of the wallet created in btcli
 
-# Note: LOWER THAN 0.01 MAY CAUSE THE BUYS TO FAIL WHILE STILL TAKING THE GAS FEE
-MAX_TAO_PER_BUY = 0.02 #May increase as desired, I wouldnt reduce it.
-MAX_TAO_PER_SELL = 0.02 #May increase as desired, I wouldnt reduce it
-MAX_SLIPPAGE_PERCENT_PER_BUY = 0.2 #If over this slippage %, buy trades won't execute.
+MIN_TAO_IN_WALLET = 0.2
+MAX_TAO_PER_BUY = 0.05 #May increase as desired, I wouldnt reduce it.
+MAX_TAO_PER_SELL = 0.05 #May increase as desired, I wouldnt reduce it
+MAX_SLIPPAGE_PERCENT_PER_BUY = 0.1 #If over this slippage %, buy trades won't execute.
+ALPHA_AMOUNT_TO_KEEP = 0 # Amount of alpha that won't be sold  no matter how high price goes
 
 # Power curve settings for buy/sell zones (1.0 = linear, >1.0 = more aggressive early, <1.0 = more conservative early)
 # Must be positive. Suggested range: 0.1 to 10
@@ -50,6 +51,7 @@ SUBNET_SETTINGS = {
      # 'stake_on_validator': '5SomeOtherValidatorHotkeyHere',  # Stake on different validator
      # 'buy_zone_power': 2.0,  # More aggressive buying early (stays near buy_upper longer)
      # 'sell_zone_power': 0.5,  # More conservative selling early (drops to sell_lower faster)
+     # 'alpha_amount_to_keep': 50
      },
 }
 

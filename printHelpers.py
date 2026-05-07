@@ -4,6 +4,7 @@ from rich.table import Table
 from rich.panel import Panel
 from rich import box
 import bagbot_settings
+import traceback
 
 def price_proximity_bar(buyprice, sellprice, currentprice, bar_width=20):
     """
@@ -85,22 +86,29 @@ def print_table_rich(
     from datetime import datetime
     formatted_time = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
-    table = Table(title=f"Staking Allocations - {formatted_time}", header_style="bold white on dark_blue", box=box.SIMPLE_HEAVY)
-    table.add_column("Subnet", justify="right", style="bright_cyan")
-    table.add_column("Name", justify="left", style="white")
-    table.add_column("Alpha", justify="right", style="magenta")
-    table.add_column("Max Alpha", justify="right", style="magenta")
-    table.add_column("% Filled", justify="right", style="magenta")
-    table.add_column("TAO Value", justify="right", style="yellow")
-    table.add_column("Buy Lower", justify="right", style="grey66")
-    table.add_column("Curr Buy", justify="right", style="bright_green")
-    table.add_column("Buy Upper", justify="right", style="grey66")
-    table.add_column("Price", justify="right", style="bright_cyan")
-    table.add_column("Sell Lower", justify="right", style="grey66")
-    table.add_column("Curr Sell", justify="right", style="bright_red")
-    table.add_column("Sell Upper", justify="right", style="grey66")
-    table.add_column("Price Proximity", justify="right", style="white")
-
+    # table = Table(title=f"Staking Allocations - {formatted_time}", header_style="bold white on dark_blue", box=box.SIMPLE_HEAVY)
+    table = Table(
+        title=f"Staking Allocations - {formatted_time}", 
+        header_style="bold white on dark_blue", 
+        box=box.SIMPLE_HEAVY,
+        expand=False,
+        min_width=None,
+        padding=(0,1)
+    )
+    table.add_column("id", justify="right", style="bright_cyan")
+    table.add_column("sn", justify="left", style="white")
+    table.add_column("α", justify="left", style="rgb(255,0,255)")
+    table.add_column("max α", justify="left", style="dim magenta")
+    table.add_column("fill%", justify="left", style="dim magenta")
+    table.add_column("τ val", justify="left", style="yellow")
+    table.add_column("buy min", justify="left", style="dim light_green")
+    table.add_column("curr buy", justify="left", style="bright_green")
+    table.add_column("buy max", justify="left", style="dim green")
+    table.add_column("price", justify="center", style="bold bright_cyan", no_wrap=True)
+    table.add_column("sell min", justify="right", style="dim bright_yellow", no_wrap=True)
+    table.add_column("curr sell", justify="right", style="bright_red", no_wrap=True)
+    table.add_column("sell max", justify="right", style="dim bright_red", no_wrap=True)
+    table.add_column("price proximity", justify="center", style="white")
     # Collect all unique subnet IDs across all validators
     all_netuids = set()
     for hotkey in stake_info:
@@ -170,7 +178,7 @@ def print_table_rich(
         max_stake_str = f"{max_stake_amt:.0f}" if max_stake_amt > 0 else ''
         stake_perc_filled = str(int(stake_amt*100.0/max_stake_amt)) + '%' if max_stake_amt > 0 else ''
         table.add_row(
-            f"{'BUY ' if probably_buying else ''}{'SELL ' if probably_selling else ''}{str(netuid)}",
+            f"{'B ' if probably_buying else ''}{'S ' if probably_selling else ''}{str(netuid)}",
             name,
             f"{stake_amount_str}",
             f"{max_stake_str}",
@@ -186,12 +194,20 @@ def print_table_rich(
             f"{prox_bar}"
         )
 
+	#summary = (
+			#f"[bold green]Total:[/bold green] {balance+total_stake_value:.2f} TAO    "
+		#f"[bold cyan]Available:[/bold cyan] {balance:.4f} TAO    "
+		#f"[bold cyan]Stake Value:[/bold cyan] {total_stake_value:.4f} TAO"
+		#)
     summary = (
-        f"[bold green]Total:[/bold green] {balance+total_stake_value:.2f} TAO    "
-        f"[bold cyan]Available:[/bold cyan] {balance:.4f} TAO    "
-        f"[bold cyan]Stake Value:[/bold cyan] {total_stake_value:.4f} TAO"
+        f"[bold green]Total:[/bold green] {balance+total_stake_value:.2f}τ    "
+        f"[bold cyan]Available:[/bold cyan] {balance:.4f}τ    "
+        f"[bold cyan]Stake Value:[/bold cyan] {total_stake_value:.4f}τ    "
+        f"[dim grey66]MIN W Balance:[bold dim white] {bagbot_settings.MIN_TAO_IN_WALLET:.2f}τ   "
+        f"[dim grey66]MAX buy:[bold dim white] {bagbot_settings.MAX_TAO_PER_BUY:.2f}τ   "
+        f"[dim grey66]MAX sell:[bold dim white] {bagbot_settings.MAX_TAO_PER_SELL:.2f}τ   "
+        f"[dim grey66]Hodl Amount: [bold dim white] {bagbot_settings.ALPHA_AMOUNT_TO_KEEP:.2f}α"
     )
     console.print(Panel(summary, style="bold white"))
     console.print(table)
-
 
