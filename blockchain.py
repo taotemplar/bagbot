@@ -3,8 +3,9 @@ import logging
 import websockets
 import traceback
 import json
+import os
 from typing import List, Dict, Tuple
-
+from dotenv import load_dotenv
 import bittensor as bt
 from bittensor.core.async_subtensor import get_async_subtensor
 import async_substrate_interface
@@ -190,14 +191,22 @@ class BittensorUtility():
         return list(validators)
 
 
-    async def setupWallet(self):
-        wallet_pw = bagbot_settings.WALLET_PW
+#    async def setupWallet(self):
+#        wallet_pw = bagbot_settings.WALLET_PW
+#
+#        self.wallet = bt.Wallet(name=bagbot_settings.WALLET_NAME)
+#        self.wallet.create_if_non_existent()
+#        self.wallet.coldkey_file.save_password_to_env(wallet_pw)
+#        self.wallet.unlock_coldkey()
 
-        self.wallet = bt.Wallet(name=bagbot_settings.WALLET_NAME)
+    async def setupWallet(self):
+        wallet_pw = os.environ.get('WALLET_PW')
+        wallet_name = os.environ.get('WALLET_NAME')
+
+        self.wallet = bt.Wallet(name=wallet_name)
         self.wallet.create_if_non_existent()
         self.wallet.coldkey_file.save_password_to_env(wallet_pw)
         self.wallet.unlock_coldkey()
-
 
     async def setupSubtensor(self):
         while True:
