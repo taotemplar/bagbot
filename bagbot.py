@@ -4,7 +4,6 @@ import argparse
 import traceback
 
 from blockchain import BittensorUtility
-rao_to_tao = lambda rao : int(rao)/1000000000.0
 
 def parseArgs():
     parser = argparse.ArgumentParser(description="A basic bittensor alpha bot")

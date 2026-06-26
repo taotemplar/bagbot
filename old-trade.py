@@ -163,8 +163,7 @@ def constructBuy(self, subnet_netuid):
                 return None
             if Decimal(slippage) > Decimal(max_slippage):
                 raise Exception(f'Stopping before purchasing too much slippage: {Decimal(slippage)}, max slippage per buy/sell: {Decimal(max_slippage)}.  \nTO FIX: increase the max_tao_per_buy variable or increase max_slippage_percent_per_buy')
-			#tao_amount = bt.utils.balance.tao(tao_amount)
-            tao_amount = bt.Balance.from_tao(tao_amount)
+            tao_amount = bt.utils.balance.tao(tao_amount)
             trade = {
                 'hotkey':hotkey,
                 'netuid':subnet_netuid,
@@ -187,7 +186,6 @@ def constructSell(self, subnet_netuid):
         # Get subnet-specific settings or fall back to global defaults
         max_tao_per_sell = self.get_subnet_setting(subnet_netuid, 'max_tao_per_sell', bagbot_settings.MAX_TAO_PER_SELL)
         max_slippage = self.get_subnet_setting(subnet_netuid, 'max_slippage_percent_per_buy', bagbot_settings.MAX_SLIPPAGE_PERCENT_PER_BUY)
-        alpha_keep = self.get_bagbot_settings(subnet_netuid, 'alpha_keep', bagbot_settings.ALPHA_KEEP)
 
         if subnet_netuid in self.stats and \
             self.stats[subnet_netuid]['price'] > sell_threshold and \
@@ -197,15 +195,10 @@ def constructSell(self, subnet_netuid):
             my_current_alpha = float(self.my_current_stake(subnet_netuid))
             max_alpha_possible_to_sell = min(my_current_alpha, unstake_target)
             alpha_to_sell = self.determineTokenBuyAmount(max_alpha_possible_to_sell, self.stats[subnet_netuid]['alpha_in'], max_slippage)
-			#alpha_amount = bt.utils.balance.tao(alpha_to_sell, subnet_netuid)
-            alpha_amount = bt.Balance.from_tao(alpha_to_sell).set_unit(subnet_netuid)
+            alpha_amount = bt.utils.balance.tao(alpha_to_sell, subnet_netuid)
 
             hotkey = self.determineHotKey(alpha_to_sell, subnet_netuid)
             approx_tao = float(Decimal(self.stats[subnet_netuid]['price']) * Decimal(alpha_to_sell))
-
-            if my_current_alpha - alpha_to_sell < alpha_keep
-                logger.info(f"Stopped a sell of: {alpha_to_sell} due to ALPHA KEEP limit: {alpha_keep}")
-                return None
 
             if approx_tao > max_tao_per_sell:
                 raise Exception(f'Stopping before selling too much. approx_tao: {approx_tao}, max tao per sell: {max_tao_per_sell}, price x alpha: {self.stats[subnet_netuid]["price"]} x {alpha_to_sell} \nTO FIX: increase the max_tao_per_sell variable or increase max_slippage_percent_per_buy')

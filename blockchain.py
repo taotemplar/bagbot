@@ -63,17 +63,27 @@ def print_link(url: str, text: str | None = None) -> None:
     # \x1b = ESC
 	#print(f"\x1b]8;;{url}\x1b\\{text}\x1b]8;;\x1b\\")
 
+# async def my_async_subtensor(*args, **kwargs):
+#     attempts = 0
+#     while attempts < 20:
+#         try:
+#             return await get_async_subtensor(*args, **kwargs)
+#         except (websockets.exceptions.InvalidStatus, AttributeError, asyncio.exceptions.TimeoutError) as e:
+#             logger.error(f'Invalid status err {str(e)}, retrying')
+#             attempts += 1
+#             if attempts >= 19:
+#                 raise
+#             await asyncio.sleep(attempts*2)
 async def my_async_subtensor(*args, **kwargs):
-    attempts = 0
-    while attempts < 20:
+    last_exc = None
+    for attempt in range(20):
         try:
             return await get_async_subtensor(*args, **kwargs)
-        except (websockets.exceptions.InvalidStatus, AttributeError, asyncio.exceptions.TimeoutError) as e:
-            logger.error(f'Invalid status err {str(e)}, retrying')
-            attempts += 1
-            if attempts >= 19:
-                raise
-            await asyncio.sleep(attempts*2)
+        except (websockets.exceptions.InvalidStatus, AttributeError, asyncio.exceptions.TimeoutError, OSError) as e:
+            last_exc = e
+            logger.error(f'Connection err {str(e)}, retrying (attempt {attempt+1}/20)')
+            await asyncio.sleep((attempt + 1) * 2)
+    raise last_exc
 
 class BittensorUtility():
 
@@ -192,7 +202,7 @@ class BittensorUtility():
     async def setupSubtensor(self):
         while True:
             try:
-                self.sub = await get_async_subtensor("finney")
+                self.sub = await my_async_subtensor("finney")
 
                 break
             except (asyncio.exceptions.TimeoutError, ConnectionResetError) as e:
@@ -255,32 +265,41 @@ class BittensorUtility():
 
     def sendNotification(self, msg):
         logger.info(msg)
-        #TODO Add Alerting code below:
 
     async def get_subnet_stats(self) -> Tuple[Dict[int, Dict], Dict[int, int]]:
         all_subnets = None
         attempts = 0
+
         while all_subnets is None and attempts < 10:
             try:
                 all_subnets = await self.sub.all_subnets()
-                break
-            # SubstrateRequestException not caught before (caused a crash)
-            except Exception as e: # THE MAIN FIX: except Exception as e: catches all errors (logs them, retries and wont crash)
+                break  # Success
+
+            except Exception as e:
                 attempts += 1
+                logger.error(f'Fetching subnets data failed (attempt {attempts}/10): {e}')
+
                 if attempts > 5:
                     self.sendNotification(f"Failed to fetch subnets after {attempts} attempts: {e}")
-                logger.error(f'Fetching subnets data failed (attempt {attempts}): {e}')
+
                 await asyncio.sleep(3)
 
                 try:
                     await self.sub.close()
                 except:
                     pass
-                self.sub = await my_async_subtensor("finney")
+
+                try:
+                    self.sub = await my_async_subtensor("finney")
+                except Exception as reconnect_err:
+                    logger.error(f'Reconnection failed: {reconnect_err}')
+                    # Keep retrying if reconnection fails
+                    continue
 
         if all_subnets is None:
-            raise Exception("Failed to fetch subnets after many retries")
+            raise Exception(f"Failed to fetch subnets after {attempts} attempts. Last error: {e}")
 
+        # Build stats
         stats = {}
         for subnet in all_subnets:
             netuid = subnet.netuid
@@ -385,41 +404,23 @@ class BittensorUtility():
                         return
                 allSubnetParams = '&var-target_subnets='.join([str(k) for k in self.subnet_grids])
                 print_link(f"https://taoflute.com/d/5c216965-b99b-4d82-8b31-931bb3d71567/subnets-overview?orgId=1&var-target_subnets={allSubnetParams}", 'Taoflute Portfolio link')
-
-#                logger.info(f'Tick {self.tick}: Printing table')
-#                printHelpers.print_table_rich(self, console, self.current_stake_info, list(bagbot_settings.SUBNET_SETTINGS.keys()), self.stats, self.balance, self.subnet_grids)
-#
-#                if self.tick == 1 and not self.args.nocheck:
-#                    # Check for interactive terminal
-#                    if sys.stdin.isatty():
-#                        loop = asyncio.get_event_loop()
-#                        allSubnetParams = '&var-target_subnets='.join([str(k) for k in self.subnet_grids])
-#                        print(f"Link to portfolio on taoflute: https://taoflute.com/d/5c216965-b99b-4d82-8b31-931bb3d71567/subnets-overview?orgId=1&var-target_subnets={allSubnetParams}\n")
-#                        user_input = await loop.run_in_executor(None, input, "Should the bot proceed? (Y/N): ")
-#                        if user_input.lower() != 'y':
-#                            print('Exiting...')
-#                            return
-#                    else:
-#                        logger.info("Non-interactive terminal detected: Skipping 'Y/N' prompt and proceeding.")
-#
-#                # Always print taoflute link (whether using terminal or log file)
-#                allSubnetParams = '&var-target_subnets='.join([str(k) for k in self.subnet_grids])
-#                print_link(f"https://taoflute.com/d/5c216965-b99b-4d82-8b31-931bb3d71567/subnets-overview?orgId=1&var-target_subnets={allSubnetParams}", 'Taoflute Portfolio link')
-
                 logger.info(f'Tick {self.tick}: Checking trades')
+
                 for subnet_netuid in bagbot_settings.SUBNET_SETTINGS:
                     await self.do_available_trades(subnet_netuid)
 
-                logging.info(f'Finished tick {self.tick} in {time.time() - start:.2f} seconds')
-                #return
+                logging.info(f'Finished tick {self.tick} in {time.time() - start:.2f} seconds')                
                 try:
                     logger.info(f'Tick {self.tick}: Waiting for next block')
                     await asyncio.wait_for(self.sub.wait_for_block(), timeout=30.0)
-                except asyncio.TimeoutError:
-                    logger.warning(f'Tick {self.tick}: wait_for_block timed out after 30s, reconnecting...')
-                    await self.sub.close()
+                except (asyncio.TimeoutError, OSError):
+                    logger.warning(f'Tick {self.tick}: CONNECTION ERROR (wait_for_block timed out), reconnecting...')
+                    try:
+                        await self.sub.close()
+                    except:
+                        pass
                     self.sub = await my_async_subtensor("finney")
-                except (OSError, KeyError):
+                except KeyError:
                     await asyncio.sleep(12) #if error with waiting for block try again after approx 1 block
 
             except InternetIssueException:
@@ -441,6 +442,9 @@ class BittensorUtility():
                 except:
                     pass
                 self.sub = await my_async_subtensor("finney")
+            except OSError as e:
+                logger.critical(f'Could not reconnect after 20 attempts: {e}. Shutting down.')
+                return
             except asyncio.exceptions.TimeoutError:
                 logger.warning(f'Timeout error in tick {self.tick}, reconnecting subtensor...')
                 try:
@@ -449,11 +453,6 @@ class BittensorUtility():
                     pass
                 self.sub = await my_async_subtensor("finney")
                 await asyncio.sleep(3)
-            finally:
-                try:
-                    await self.sub.close()
-                except asyncio.exceptions.TimeoutError:
-                    logger.error('Closing subtensor timeout')
 
 from trade import (
     determine_buy_at_for_amount, determine_sell_at_for_amount,

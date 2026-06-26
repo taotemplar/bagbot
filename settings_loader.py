@@ -1,7 +1,9 @@
 import ast
 from pathlib import Path
 import sys
+import os 
 from types import SimpleNamespace
+from dotenv import load_dotenv
 
 class InvalidSettings(Exception): pass
 
@@ -10,6 +12,10 @@ def load_safe_python_settings():
 
     # Determine where to look for the files (works in dev and when frozen with PyInstaller/Nuitka)
     exe_dir = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(".")
+
+    # Load .env file from the same dir as the settings file
+    env_path = exe_dir / ".env"
+    load_dotenv(env_path)
 
     default_path = exe_dir / "bagbot_settings.py"
     overrides_path = exe_dir / "bagbot_settings_overrides.py"
@@ -53,6 +59,20 @@ def load_safe_python_settings():
                         settings[name] = value
                     except (ValueError, SyntaxError):
                         print(f"Warning: Skipping unsafe annotated assignment '{name}' in {path.name}")
+
+    namespace = SimpleNamespace(**settings)
+
+    # Get wallet name & password from .env
+    wallet_pw = os.environ.get("WALLET_PW")
+    wallet_name = os.environ.get("WALLET_NAME")
+
+    if wallet_pw is None:
+        raise InvalidSettings("WALLET_PW is not set in the .env file")
+    if wallet_name is None:
+        raise InvalidSettings("WALLET_NAME is not set in the .env file")
+
+    namespace.WALLET_PW = wallet_pw
+    namespace.WALLET_NAME = wallet_name
 
     return SimpleNamespace(**settings)
 

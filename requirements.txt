@@ -1,5 +1,6 @@
 websockets
 rich
-bittensor==10.2.0
-bittensor-cli==9.19.0
-bittensor-wallet==4.0.1
+bittensor
+bittensor-cli
+bittensor-wallet
+python-dotenv

@@ -52,3 +52,4 @@ staking.log
 .bagbotvirtualenv
 .*
 .bagbot_settings_overrides.py
+.install*

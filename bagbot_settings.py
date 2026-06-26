@@ -2,14 +2,11 @@
 STAKE_ON_VALIDATOR = "5G3wMP3g3d775hauwmAZioYFVZYnvw6eY46wkFy8hEWD5KP3" #(Opentensor Foundation by default) Replace with the hotkey of the validator you want to stake with (copy from https://taostats.io/validators )
 # Note: The bot can only see and operate alpha staked on the hotkey defined above. Alpha staked on any other validator hotkey are invisible & unusable to the bot.
 
-WALLET_PW = 'your_wallet_password' #Replace with your wallet's password that you entered into btcli
-WALLET_NAME = 'bagbot' #The name of the wallet created in btcli
-
 MIN_TAO_IN_WALLET = 0.2
 MAX_TAO_PER_BUY = 0.05 #May increase as desired, I wouldnt reduce it.
 MAX_TAO_PER_SELL = 0.05 #May increase as desired, I wouldnt reduce it
 MAX_SLIPPAGE_PERCENT_PER_BUY = 0.1 #If over this slippage %, buy trades won't execute.
-ALPHA_AMOUNT_TO_KEEP = 0 # Amount of alpha that won't be sold  no matter how high price goes
+ALPHA_KEEP = 0 # Amount of alpha tokens to hold i.e. BAGBOT WONT SELL THESE NO MATTER HOW HIGH PRICE GOES
 
 # Power curve settings for buy/sell zones (1.0 = linear, >1.0 = more aggressive early, <1.0 = more conservative early)
 # Must be positive. Suggested range: 0.1 to 10
@@ -32,26 +29,21 @@ SELL_ZONE_POWER = 1.0  # Power curve exponent for sell price progression
 #
 # DELETE THE EXAMPLE SUBNETS BELOW AND ADD SUBNETS AS DESIRED
 SUBNET_SETTINGS = {
-# Subnet 23 settings:
-23: {'buy_lower':  0.000011,
-     'buy_upper':  0.000015,
-     'sell_lower': 0.5,
-     'sell_upper': 1,
-     'max_alpha':  10000},
-# Subnet 99 settings (with per-subnet overrides example):
+# EXAMPLE: Subnet 99 settings (with per-subnet overrides example):
 99: {'buy_lower':  0.000002,
      'buy_upper':  0.000009,
      'sell_lower': 0.77,
      'sell_upper': 0.99,
      'max_alpha':  100,
+
      # Example overrides (optional):
-     # 'max_tao_per_buy': 0.05,  # Use 0.05 TAO per buy instead of global default
-     # 'max_tao_per_sell': 0.03,  # Use 0.03 TAO per sell instead of global default
-     # 'max_slippage_percent_per_buy': 0.3,  # Allow 0.3% slippage instead of global default
-     # 'stake_on_validator': '5SomeOtherValidatorHotkeyHere',  # Stake on different validator
-     # 'buy_zone_power': 2.0,  # More aggressive buying early (stays near buy_upper longer)
-     # 'sell_zone_power': 0.5,  # More conservative selling early (drops to sell_lower faster)
-     # 'alpha_amount_to_keep': 50
+     'max_tao_per_buy': 0.1,
+     'max_tao_per_sell': 0.03,
+     'max_slippage_percent_per_buy': 0.3,
+     'stake_on_validator': '5SomeOtherValidatorHotkeyHere',
+     'buy_zone_power': 1.5, # buy more for higher price i.e. earlier
+     'sell_zone_power': 0.5, # sell more for lower price i.e. earlier
+     'alpha_keep': 25 # Amount of alpha tokens to hold i.e. BAGBOT WONT SELL THESE
      },
 }
 

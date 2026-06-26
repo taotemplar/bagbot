@@ -3,7 +3,7 @@ import time
 from rich.table import Table
 from rich.panel import Panel
 from rich import box
-import bagbot_settings
+from settings_loader import bagbot_settings
 import traceback
 
 def price_proximity_bar(buyprice, sellprice, currentprice, bar_width=20):
@@ -206,8 +206,7 @@ def print_table_rich(
         f"[dim grey66]MIN W Balance:[bold dim white] {bagbot_settings.MIN_TAO_IN_WALLET:.2f}τ   "
         f"[dim grey66]MAX buy:[bold dim white] {bagbot_settings.MAX_TAO_PER_BUY:.2f}τ   "
         f"[dim grey66]MAX sell:[bold dim white] {bagbot_settings.MAX_TAO_PER_SELL:.2f}τ   "
-        f"[dim grey66]Hodl Amount: [bold dim white] {bagbot_settings.ALPHA_AMOUNT_TO_KEEP:.2f}α"
+		# f"[dim grey66]Hodl Amount: [bold dim white] {bagbot_settings.ALPHA_AMOUNT_TO_KEEP:.2f}α"
     )
     console.print(Panel(summary, style="bold white"))
     console.print(table)
-

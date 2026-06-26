@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 PROJ_DIR="$HOME/git/bagbot"
 PID_LOG="/var/tmp/PIDbagbot.log" # store PIDs of running bagbot processes just in case...
