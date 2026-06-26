@@ -195,7 +195,8 @@ def constructSell(self, subnet_netuid):
 
             unstake_target = max_tao_per_sell / self.stats[subnet_netuid]['price']
             my_current_alpha = float(self.my_current_stake(subnet_netuid))
-            max_alpha_possible_to_sell = min(my_current_alpha, unstake_target)
+            # max_alpha_possible_to_sell = min(my_current_alpha, unstake_target)
+            max_alpha_possible_to_sell = min(my_current_alpha - alpha_keep, unstake_target)
             alpha_to_sell = self.determineTokenBuyAmount(max_alpha_possible_to_sell, self.stats[subnet_netuid]['alpha_in'], max_slippage)
 			#alpha_amount = bt.utils.balance.tao(alpha_to_sell, subnet_netuid)
             alpha_amount = bt.Balance.from_tao(alpha_to_sell).set_unit(subnet_netuid)
@@ -203,9 +204,9 @@ def constructSell(self, subnet_netuid):
             hotkey = self.determineHotKey(alpha_to_sell, subnet_netuid)
             approx_tao = float(Decimal(self.stats[subnet_netuid]['price']) * Decimal(alpha_to_sell))
 
-            if my_current_alpha - alpha_to_sell < alpha_keep
-                logger.info(f"Stopped a sell of: {alpha_to_sell} due to ALPHA KEEP limit: {alpha_keep}")
-                return None
+            # if my_current_alpha - alpha_to_sell < alpha_keep
+            #     logger.info(f"Stopped a sell of: {alpha_to_sell} due to ALPHA KEEP limit: {alpha_keep}")
+            #     return None
 
             if approx_tao > max_tao_per_sell:
                 raise Exception(f'Stopping before selling too much. approx_tao: {approx_tao}, max tao per sell: {max_tao_per_sell}, price x alpha: {self.stats[subnet_netuid]["price"]} x {alpha_to_sell} \nTO FIX: increase the max_tao_per_sell variable or increase max_slippage_percent_per_buy')
