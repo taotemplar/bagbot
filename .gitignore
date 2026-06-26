@@ -53,3 +53,4 @@ staking.log
 .*
 .bagbot_settings_overrides.py
 .install*
+old-trade.py
