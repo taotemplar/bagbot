@@ -5,8 +5,9 @@ from rich.panel import Panel
 from rich import box
 from settings_loader import bagbot_settings
 import traceback
+from theme import get_theme
 
-def price_proximity_bar(buyprice, sellprice, currentprice, bar_width=20):
+def price_proximity_bar(buyprice, sellprice, currentprice, bar_width=24):
     """
     Generate an ASCII bar showing how close currentprice is to buyprice or sellprice,
     with the bar scaled to always include all three prices.
@@ -86,29 +87,33 @@ def print_table_rich(
     from datetime import datetime
     formatted_time = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
-    # table = Table(title=f"Staking Allocations - {formatted_time}", header_style="bold white on dark_blue", box=box.SIMPLE_HEAVY)
+
+    colors = get_theme()
+
+#    table = Table(title=f"Staking Allocations - {formatted_time}", header_style="bold white on dark_blue", box=box.SIMPLE_HEAVY)
     table = Table(
-        title=f"Staking Allocations - {formatted_time}", 
-        header_style="bold white on dark_blue", 
+        title=f"Staking Allocations - {formatted_time}",
+        header_style=colors["header_style"],
         box=box.SIMPLE_HEAVY,
         expand=False,
         min_width=None,
-        padding=(0,1)
+        padding=(0, 1)
     )
-    table.add_column("id", justify="right", style="bright_cyan")
-    table.add_column("sn", justify="left", style="white")
-    table.add_column("α", justify="left", style="rgb(255,0,255)")
-    table.add_column("max α", justify="left", style="dim magenta")
-    table.add_column("fill%", justify="left", style="dim magenta")
-    table.add_column("τ val", justify="left", style="yellow")
-    table.add_column("buy min", justify="left", style="dim light_green")
-    table.add_column("curr buy", justify="left", style="bright_green")
-    table.add_column("buy max", justify="left", style="dim green")
-    table.add_column("price", justify="center", style="bold bright_cyan", no_wrap=True)
-    table.add_column("sell min", justify="right", style="dim bright_yellow", no_wrap=True)
-    table.add_column("curr sell", justify="right", style="bright_red", no_wrap=True)
-    table.add_column("sell max", justify="right", style="dim bright_red", no_wrap=True)
-    table.add_column("price proximity", justify="center", style="white")
+    table.add_column("SN",              justify="right",  style=colors["id"])
+    table.add_column("Name",              justify="left",   style=colors["sn"])
+    table.add_column("α",               justify="left",   style=colors["alpha"])
+    table.add_column("Max α",           justify="left",   style=colors["max_alpha"])
+    table.add_column("Fill%",           justify="left",   style=colors["fill_pct"])
+    table.add_column("τ Value",           justify="left",   style=colors["tao_val"])
+    table.add_column("Buy Lower",         justify="left",   style=colors["buy_min"])
+    table.add_column("Curr Buy",        justify="left",   style=colors["curr_buy"])
+    table.add_column("Buy Upper",         justify="left",   style=colors["buy_max"])
+    table.add_column("Price",           justify="center", style=colors["price"],     no_wrap=True)
+    table.add_column("Sell Lower",        justify="right",  style=colors["sell_min"],  no_wrap=True)
+    table.add_column("Curr Sell",       justify="right",  style=colors["curr_sell"], no_wrap=True)
+    table.add_column("Sell Upper",        justify="right",  style=colors["sell_max"],  no_wrap=True)
+    table.add_column("Price Proximity", justify="center", style=colors["price_prox"])
+
     # Collect all unique subnet IDs across all validators
     all_netuids = set()
     for hotkey in stake_info:
@@ -203,10 +208,10 @@ def print_table_rich(
         f"[bold green]Total:[/bold green] {balance+total_stake_value:.2f}τ    "
         f"[bold cyan]Available:[/bold cyan] {balance:.4f}τ    "
         f"[bold cyan]Stake Value:[/bold cyan] {total_stake_value:.4f}τ    "
-        f"[dim grey66]MIN W Balance:[bold dim white] {bagbot_settings.MIN_TAO_IN_WALLET:.2f}τ   "
-        f"[dim grey66]MAX buy:[bold dim white] {bagbot_settings.MAX_TAO_PER_BUY:.2f}τ   "
-        f"[dim grey66]MAX sell:[bold dim white] {bagbot_settings.MAX_TAO_PER_SELL:.2f}τ   "
-		# f"[dim grey66]Hodl Amount: [bold dim white] {bagbot_settings.ALPHA_AMOUNT_TO_KEEP:.2f}α"
+        f"[dim grey66]Max buy:[bold dim white] {bagbot_settings.MAX_TAO_PER_BUY:.2f}τ   "
+        f"[dim grey66]Max sell:[bold dim white] {bagbot_settings.MAX_TAO_PER_SELL:.2f}τ   "
+        f"[dim grey66]Keep in wallet:[bold dim white] {bagbot_settings.MIN_TAO_IN_WALLET:.2f}τ   "
+		# f"[dim grey66]Hodl Amount: [bold dim white] {bagbot_settings.ALPHA_KEEP:.2f}α"
     )
     console.print(Panel(summary, style="bold white"))
     console.print(table)

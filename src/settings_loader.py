@@ -10,7 +10,7 @@ class InvalidSettings(Exception): pass
 def load_safe_python_settings():
     settings = {}
 
-    # Determine where to look for the files (works in dev and when frozen with PyInstaller/Nuitka)
+    # Determine where to look for the files
     exe_dir = Path(sys.executable).parent if getattr(sys, 'frozen', False) else Path(".")
 
     # Load .env file from the same dir as the settings file

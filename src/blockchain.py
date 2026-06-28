@@ -31,6 +31,7 @@ console = Console(
 
 from settings_loader import bagbot_settings
 
+class InvalidSettings(Exception): pass
 class InternetIssueException(Exception): pass
 
 # Configure logging.
@@ -58,23 +59,8 @@ def print_link(url: str, text: str | None = None) -> None:
         crop=False,
 		no_wrap=True
     )
-#def print_link(url: str, text: str | None = None) -> None:
-	# if text is None:
-		#    text = url
-    # \x1b = ESC
-	#print(f"\x1b]8;;{url}\x1b\\{text}\x1b]8;;\x1b\\")
 
-# async def my_async_subtensor(*args, **kwargs):
-#     attempts = 0
-#     while attempts < 20:
-#         try:
-#             return await get_async_subtensor(*args, **kwargs)
-#         except (websockets.exceptions.InvalidStatus, AttributeError, asyncio.exceptions.TimeoutError) as e:
-#             logger.error(f'Invalid status err {str(e)}, retrying')
-#             attempts += 1
-#             if attempts >= 19:
-#                 raise
-#             await asyncio.sleep(attempts*2)
+
 async def my_async_subtensor(*args, **kwargs):
     last_exc = None
     for attempt in range(20):
@@ -190,14 +176,6 @@ class BittensorUtility():
 
         return list(validators)
 
-
-#    async def setupWallet(self):
-#        wallet_pw = bagbot_settings.WALLET_PW
-#
-#        self.wallet = bt.Wallet(name=bagbot_settings.WALLET_NAME)
-#        self.wallet.create_if_non_existent()
-#        self.wallet.coldkey_file.save_password_to_env(wallet_pw)
-#        self.wallet.unlock_coldkey()
 
     async def setupWallet(self):
         wallet_pw = os.environ.get('WALLET_PW')

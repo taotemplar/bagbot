@@ -53,5 +53,3 @@ staking.log
 .*
 .bagbot_settings_overrides.py
 .install*
-old-trade.py
-where_the_light_wont_shine

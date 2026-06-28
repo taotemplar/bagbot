@@ -1,8 +1,7 @@
-
 STAKE_ON_VALIDATOR = "5G3wMP3g3d775hauwmAZioYFVZYnvw6eY46wkFy8hEWD5KP3" #(Opentensor Foundation by default) Replace with the hotkey of the validator you want to stake with (copy from https://taostats.io/validators )
 # Note: The bot can only see and operate alpha staked on the hotkey defined above. Alpha staked on any other validator hotkey are invisible & unusable to the bot.
 
-MIN_TAO_IN_WALLET = 0.2
+MIN_TAO_IN_WALLET = 0.99
 MAX_TAO_PER_BUY = 0.05 #May increase as desired, I wouldnt reduce it.
 MAX_TAO_PER_SELL = 0.05 #May increase as desired, I wouldnt reduce it
 MAX_SLIPPAGE_PERCENT_PER_BUY = 0.1 #If over this slippage %, buy trades won't execute.
@@ -36,14 +35,14 @@ SUBNET_SETTINGS = {
      'sell_upper': 0.99,
      'max_alpha':  100,
 
-     # Example overrides (optional):
+     # Example overrides for this subnet (optional):
      'max_tao_per_buy': 0.1,
      'max_tao_per_sell': 0.03,
      'max_slippage_percent_per_buy': 0.3,
      'stake_on_validator': '5SomeOtherValidatorHotkeyHere',
      'buy_zone_power': 1.5, # buy more for higher price i.e. earlier
      'sell_zone_power': 0.5, # sell more for lower price i.e. earlier
-     'alpha_keep': 25 # Amount of alpha tokens to hold i.e. BAGBOT WONT SELL THESE
+     'alpha_keep': 25 # Amount of alpha tokens to hold i.e. BAGBOT WONT SELL THESE NO MATTER HOW HIGH PRICE GOES
      },
 }
 
@@ -54,4 +53,3 @@ try:
     from bagbot_settings_overrides import *
 except:
     pass
-
