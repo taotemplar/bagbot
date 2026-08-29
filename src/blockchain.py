@@ -7,7 +7,7 @@ import os
 from typing import List, Dict, Tuple
 from dotenv import load_dotenv
 import bittensor as bt
-from bittensor.core.async_subtensor import get_async_subtensor
+from bittensor._generated import runtime_apis as bt_runtime_apis
 import async_substrate_interface
 
 import printHelpers
@@ -65,7 +65,9 @@ async def my_async_subtensor(*args, **kwargs):
     last_exc = None
     for attempt in range(20):
         try:
-            return await get_async_subtensor(*args, **kwargs)
+            client = bt.Client(*args, **kwargs)
+            await client.connect()
+            return client
         except (websockets.exceptions.InvalidStatus, AttributeError, asyncio.exceptions.TimeoutError, OSError) as e:
             last_exc = e
             logger.error(f'Connection err {str(e)}, retrying (attempt {attempt+1}/20)')
@@ -109,9 +111,7 @@ class BittensorUtility():
         try:
             # Try to get comprehensive stake info
             stake_info_list = await asyncio.wait_for(
-                self.sub.get_stake_info_for_coldkey(
-                    coldkey_ss58=self.wallet.coldkey.ss58_address
-                ),
+                self.sub.staking.positions(coldkey_ss58=self.wallet.coldkey.ss58_address),
                 timeout=30.0
             )
 
@@ -182,7 +182,9 @@ class BittensorUtility():
         wallet_name = os.environ.get('WALLET_NAME')
 
         self.wallet = bt.Wallet(name=wallet_name)
-        self.wallet.create_if_non_existent()
+        # v11 removed create_if_non_existent(): recreate the same behavior here.
+        if not self.wallet.coldkey_file.exists_on_device():
+            self.wallet.create_new_coldkey(use_password=bool(wallet_pw), overwrite=False, suppress=True, coldkey_password=wallet_pw)
         self.wallet.coldkey_file.save_password_to_env(wallet_pw)
         self.wallet.unlock_coldkey()
 
@@ -259,7 +261,9 @@ class BittensorUtility():
 
         while all_subnets is None and attempts < 10:
             try:
-                all_subnets = await self.sub.all_subnets()
+                all_subnets = await self.sub.runtime(
+                    bt_runtime_apis.SubnetInfoRuntimeApi.get_all_dynamic_info, []
+                )
                 break  # Success
 
             except Exception as e:
@@ -289,16 +293,22 @@ class BittensorUtility():
         # Build stats
         stats = {}
         for subnet in all_subnets:
-            netuid = subnet.netuid
-            price = float(subnet.price)
+            # v11 get_all_dynamic_info returns raw dicts with rao int amounts and
+            # name/symbol as int-lists (utf-8 bytes).
+            netuid = int(subnet['netuid'])
+            tao_in_rao = int(subnet.get('tao_in') or 0)
+            alpha_in_rao = int(subnet.get('alpha_in') or 0)
+            if alpha_in_rao <= 0:
+                continue
+            price = tao_in_rao / alpha_in_rao
             if price <= 0:
                 continue
-            name = str(subnet.subnet_name) if hasattr(subnet, "subnet_name") else ""
+            name = bytes(subnet['subnet_name']).decode('utf-8') if subnet.get('subnet_name') else ""
             stats[netuid] = {
                 "name": name,
                 "price": price,
-                "tao_in": subnet.tao_in.tao,
-                "alpha_in": subnet.alpha_in.tao,
+                "tao_in": rao_to_tao(tao_in_rao),
+                "alpha_in": rao_to_tao(alpha_in_rao),
             }
         return stats
 
@@ -307,13 +317,14 @@ class BittensorUtility():
         attempts = 10
         for i in range(attempts):
             try:
-                retval = await asyncio.wait_for(
-                            self.sub.get_stake_for_coldkey_and_hotkey(
-                                hotkey_ss58=hotkey,
-                                coldkey_ss58=self.wallet.coldkey.ss58_address
-                            ),
-                            timeout=20.0
-                        )
+                # v11: stake_for_coldkey_and_hotkey is gone; fetch all positions
+                # for our coldkey and filter to the requested hotkey, preserving
+                # the {netuid: stake_position} shape the callers expect.
+                positions = await asyncio.wait_for(
+                    self.sub.staking.positions(coldkey_ss58=self.wallet.coldkey.ss58_address),
+                    timeout=20.0
+                )
+                retval = {p.netuid: p for p in positions if p.hotkey == hotkey}
                 return retval
             except asyncio.exceptions.TimeoutError:
                 logger.info('Timeout fetching hotkey stake')
@@ -338,10 +349,11 @@ class BittensorUtility():
             self.current_stake_info[hotkey] = await self.get_stake_for_hotkey(hotkey)
 
         logger.info('Fetching wallet balance')
-        self.balance = float(await asyncio.wait_for(
-            self.sub.get_balance(address=self.wallet.coldkey.ss58_address),
+        balance_obj = await asyncio.wait_for(
+            self.sub.balances.get(address=self.wallet.coldkey.ss58_address),
             timeout=20.0
-        ))
+        )
+        self.balance = float(balance_obj.tao)
 
         sumStakedValue = 0
         tickLog = []

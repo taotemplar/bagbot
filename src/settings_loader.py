@@ -62,18 +62,25 @@ def load_safe_python_settings():
 
     namespace = SimpleNamespace(**settings)
 
-    # Get wallet name & password from .env
+    # Wallet credentials: .env always bypasses the settings file. Any var missing
+    # from .env falls back to WALLET_PW / WALLET_NAME in bagbot_settings.py
+    # (or bagbot_settings_overrides.py).
     wallet_pw = os.environ.get("WALLET_PW")
     wallet_name = os.environ.get("WALLET_NAME")
 
     if wallet_pw is None:
-        raise InvalidSettings("WALLET_PW is not set in the .env file")
+        wallet_pw = settings.get("WALLET_PW")
     if wallet_name is None:
-        raise InvalidSettings("WALLET_NAME is not set in the .env file")
+        wallet_name = settings.get("WALLET_NAME")
+
+    if wallet_pw is None:
+        raise InvalidSettings("WALLET_PW is not set in the .env file or bagbot_settings.py")
+    if wallet_name is None:
+        raise InvalidSettings("WALLET_NAME is not set in the .env file or bagbot_settings.py")
 
     namespace.WALLET_PW = wallet_pw
     namespace.WALLET_NAME = wallet_name
 
-    return SimpleNamespace(**settings)
+    return namespace
 
 bagbot_settings = load_safe_python_settings()

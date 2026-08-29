@@ -79,7 +79,8 @@ def my_current_stake(self, subnet_netuid):
     total_stake = 0
     for hotkey in self.current_stake_info:
         stake_obj = self.current_stake_info[hotkey].get(subnet_netuid)
-        total_stake += (float(stake_obj.stake) if stake_obj is not None else 0.0)
+        # v11 Balance has no __float__; .amount is the unit-agnostic float.
+        total_stake += (stake_obj.stake.amount if stake_obj is not None else 0.0)
     return total_stake
 
 
@@ -90,7 +91,8 @@ def determineHotKey(self, unstake_amt, subnet_netuid):
     # First check if configured validator has stake
     if configured_validator in self.current_stake_info:
         stake_obj = self.current_stake_info[configured_validator].get(subnet_netuid)
-        stake = (float(stake_obj.stake) if stake_obj is not None else 0.0)
+        # v11 Balance has no __float__; .amount is the unit-agnostic float.
+        stake = (stake_obj.stake.amount if stake_obj is not None else 0.0)
         if stake > 0:
             return configured_validator
 
@@ -156,7 +158,7 @@ def constructSell(self, subnet_netuid):
         # Get subnet-specific settings or fall back to global defaults
         max_tao_per_sell = self.get_subnet_setting(subnet_netuid, 'max_tao_per_sell', bagbot_settings.MAX_TAO_PER_SELL)
         max_slippage = self.get_subnet_setting(subnet_netuid, 'max_slippage_percent_per_buy', bagbot_settings.MAX_SLIPPAGE_PERCENT_PER_BUY)
-        alpha_keep = self.get_subnet_setting(subnet_netuid, 'alpha_keep', bagbot_settings.ALPHA_KEEP)
+        alpha_keep = self.get_subnet_setting(subnet_netuid, 'alpha_keep', 0)
 
         if subnet_netuid in self.stats and \
             self.stats[subnet_netuid]['price'] > sell_threshold and \
@@ -170,8 +172,8 @@ def constructSell(self, subnet_netuid):
                 logger.info(f"Failed to sell, not enough alpha | sn{subnet_netuid} | alpha in bag:{float(my_current_alpha)} | alpha keep amount: {float(alpha_keep)}")
                 print(f"Failed to sell, not enough alpha | sn{subnet_netuid} | alpha in bag: {float(my_current_alpha)} | alpha keep amount: {float(alpha_keep)}")
                 return None
-			#alpha_amount = bt.utils.balance.tao(alpha_to_sell, subnet_netuid)
-            alpha_amount = bt.Balance.from_tao(alpha_to_sell).set_unit(subnet_netuid)
+			# v11 removed Balance.set_unit(); from_alpha() is the direct replacement.
+            alpha_amount = bt.Balance.from_alpha(alpha_to_sell, subnet_netuid)
 
             hotkey = self.determineHotKey(alpha_to_sell, subnet_netuid)
             approx_tao = float(Decimal(self.stats[subnet_netuid]['price']) * Decimal(alpha_to_sell))
@@ -204,27 +206,31 @@ async def do_available_trades(self, subnet_netuid):
     buyTrade = self.constructBuy(subnet_netuid)
     if buyTrade:
         try:
-            logger.info(f"Attempting to stake {float(buyTrade['tao_amount'])} TAO to subnet {buyTrade['netuid']}")
+            logger.info(f"Attempting to stake {buyTrade['tao_amount']} TAO to subnet {buyTrade['netuid']}")
+            # v11: add_stake() is gone; submit an AddStake intent through the
+            # plan/execute pipeline. wait_for_inclusion=False matches the old
+            # fire-and-forget buy semantics (accepted as an execute() kwarg).
             stake_result = await asyncio.wait_for(
-                self.sub.add_stake(
-                    wallet=self.wallet,
-                    hotkey_ss58=buyTrade['hotkey'],
-                    netuid=buyTrade['netuid'],
-                    amount=buyTrade['tao_amount'],
-                    rate_tolerance=buyTrade['max_slippage'],
+                self.sub.execute(
+                    bt.AddStake(
+                        hotkey_ss58=buyTrade['hotkey'],
+                        netuid=buyTrade['netuid'],
+                        amount_tao=buyTrade['tao_amount'],
+                        slippage_protection=True,
+                        rate_tolerance=buyTrade['max_slippage']
+                    ),
+                    self.wallet,
                     wait_for_inclusion=False,
-                    wait_for_finalization=False,
-                    safe_staking=True,
-                    allow_partial_stake=False
+                    wait_for_finalization=False
                 ),
                 timeout=45.0
             )
             print(f'after buy {str(buyTrade)}')
             #print(f'after buy {str(buyTrade)}: {str(stake_result)}')
             if stake_result is True or stake_result.__dict__.get('success') is True:
-                logger.info(f"Staked {float(buyTrade['tao_amount'])} TAO to subnet {buyTrade['netuid']} ({str(stake_result)})")
+                logger.info(f"Staked {buyTrade['tao_amount']} TAO to subnet {buyTrade['netuid']} ({str(stake_result)})")
             else:
-                logger.info(f"Failed to stake {float(buyTrade['tao_amount'])} TAO to subnet {buyTrade['netuid']} ({str(stake_result)})")
+                logger.info(f"Failed to stake {buyTrade['tao_amount']} TAO to subnet {buyTrade['netuid']} ({str(stake_result)})")
         except asyncio.TimeoutError:
             logger.error(f"Timeout staking on subnet {buyTrade['netuid']} after 45s")
         except Exception as e:
@@ -235,24 +241,27 @@ async def do_available_trades(self, subnet_netuid):
     sellTrade = self.constructSell(subnet_netuid)
     if sellTrade:
         try:
-            logger.info(f"Attempting to unstake {float(sellTrade['alpha_amount'])} alpha from subnet {sellTrade['netuid']}")
+            logger.info(f"Attempting to unstake {sellTrade['alpha_amount']} alpha from subnet {sellTrade['netuid']}")
+            # v11: unstake() is gone; submit a RemoveStake intent. The old call
+            # waited for inclusion (not finalization) on sells — preserved here.
             unstake_result = await asyncio.wait_for(
-                self.sub.unstake(
-                    wallet=self.wallet,
-                    hotkey_ss58=sellTrade['hotkey'] ,
-                    netuid=sellTrade['netuid'],
-                    amount=sellTrade['alpha_amount'],
-                    rate_tolerance=sellTrade['max_slippage'],
+                self.sub.execute(
+                    bt.RemoveStake(
+                        hotkey_ss58=sellTrade['hotkey'],
+                        netuid=sellTrade['netuid'],
+                        amount_alpha=sellTrade['alpha_amount'],
+                        slippage_protection=True,
+                        rate_tolerance=sellTrade['max_slippage']
+                    ),
+                    self.wallet,
                     wait_for_inclusion=True,
-                    wait_for_finalization=False,
-                    safe_unstaking=True,
-                    allow_partial_stake=False
+                    wait_for_finalization=False
                 ),
                 timeout=60.0
             )
             print(f'after sell {str(sellTrade)}')
-            if unstake_result is True:
-                logger.info(f"Unstaked {float(sellTrade['alpha_amount'])} stake units from sn{sellTrade['netuid']} (approx. {sellTrade['approx_tao']:.4f} TAO value) at price: {self.stats[subnet_netuid]['price']}.  my threshold = {sellTrade['sell_threshold']}")
+            if unstake_result is True or getattr(unstake_result, 'success', False) is True:
+                logger.info(f"Unstaked {sellTrade['alpha_amount']} stake units from sn{sellTrade['netuid']} (approx. {sellTrade['approx_tao']:.4f} TAO value) at price: {self.stats[subnet_netuid]['price']}.  my threshold = {sellTrade['sell_threshold']}")
             else:
                 logger.info(f"Failed to unstake {str(sellTrade)}  sn{subnet_netuid} ({str(unstake_result)})")
         except asyncio.TimeoutError:

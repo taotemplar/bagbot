@@ -1,6 +1,7 @@
 import sys
 sys.path.insert(0, 'src')
 import unittest, math
+import bittensor as bt
 from blockchain import BittensorUtility, InvalidSettings
 import bagbot_settings
 
@@ -75,7 +76,7 @@ class TestBAGBot(unittest.TestCase):
         }}
         buyDict = bu.constructBuy(90)
         self.assertEqual(buyDict['netuid'], 90)
-        self.assertEqual(float(buyDict['tao_amount']), 0.02)
+        self.assertEqual(buyDict['tao_amount'].tao, 0.02)
 
 
 
@@ -94,7 +95,7 @@ class TestBAGBot(unittest.TestCase):
                           }}
         buyDict = bu.constructBuy(90)
         self.assertEqual(buyDict['netuid'], 90)
-        self.assertEqual(float(buyDict['tao_amount']), 0.02)
+        self.assertEqual(buyDict['tao_amount'].tao, 0.02)
         #Have 100, want 1000, so we're 10% of the way there, 10% in between the buy_upper and buy_lower is 0.019
         self.assertTrue(math.isclose(buyDict['buy_threshold'], 0.019))
 
@@ -117,8 +118,8 @@ class TestBAGBot(unittest.TestCase):
         self.assertEqual(sellDict['netuid'], 90)
         #0.02 TAO per sell, price of 0.04,
         #0.02 / 0.04 = 0.5 alpha to sell
-        self.assertEqual(float(sellDict['alpha_amount']), 0.5)
-        self.assertEqual(float(sellDict['sell_threshold']), 0.03)
+        self.assertEqual(sellDict['alpha_amount'].amount, 0.5)
+        self.assertEqual(sellDict['sell_threshold'], 0.03)
 
 
     def testSellLineBaseCase(self):
@@ -139,8 +140,8 @@ class TestBAGBot(unittest.TestCase):
         self.assertEqual(sellDict['netuid'], 90)
         #0.02 TAO per sell, price of 0.02,
         #0.02 / 0.02 = 1 alpha to sell
-        self.assertEqual(float(sellDict['alpha_amount']), 1)
-        self.assertTrue(math.isclose(float(sellDict['sell_threshold']), 0.019))
+        self.assertEqual(sellDict['alpha_amount'].amount, 1)
+        self.assertTrue(math.isclose(sellDict['sell_threshold'], 0.019))
 
 
     def testSellLineOverMaxAlpha(self):
@@ -161,8 +162,8 @@ class TestBAGBot(unittest.TestCase):
         self.assertEqual(sellDict['netuid'], 90)
         #0.02 TAO per sell, price of 0.02,
         #0.02 / 0.02 = 1 alpha to sell
-        self.assertEqual(float(sellDict['alpha_amount']), 1)
-        self.assertTrue(math.isclose(float(sellDict['sell_threshold']), 0.01))
+        self.assertEqual(sellDict['alpha_amount'].amount, 1)
+        self.assertTrue(math.isclose(sellDict['sell_threshold'], 0.01))
 
 
     def testDetermineSlippagePythonBS(self):
@@ -283,16 +284,9 @@ class TestBAGBot(unittest.TestCase):
 
 class MockStake:
     def __init__(self, stake):
-        self.stake = stake
-
-if __name__ == '__main__':
-    unittest.main()
-
-
-
-class MockStake:
-    def __init__(self, stake):
-        self.stake = stake
+        # v11 stake positions carry a unit-strict Balance (no __float__);
+        # my_current_stake() reads .amount off it.
+        self.stake = bt.Balance.from_tao(stake)
 
 if __name__ == '__main__':
     unittest.main()
