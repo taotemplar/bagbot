@@ -210,8 +210,7 @@ def print_table_rich(
         f"[bold cyan]Stake Value:[/bold cyan] {total_stake_value:.4f}τ    "
         f"[dim grey66]Max buy:[bold dim white] {bagbot_settings.MAX_TAO_PER_BUY:.2f}τ   "
         f"[dim grey66]Max sell:[bold dim white] {bagbot_settings.MAX_TAO_PER_SELL:.2f}τ   "
-        f"[dim grey66]Keep in wallet:[bold dim white] {bagbot_settings.MIN_TAO_IN_WALLET:.2f}τ   "
-		# f"[dim grey66]Hodl Amount: [bold dim white] {bagbot_settings.ALPHA_KEEP:.2f}α"
+        #f"[dim grey66]Keep in wallet:[bold dim white] {bagbot_settings.MIN_TAO_IN_WALLET:.2f}τ   "
     )
     console.print(Panel(summary, style="bold white"))
     console.print(table)

@@ -293,8 +293,6 @@ class BittensorUtility():
         # Build stats
         stats = {}
         for subnet in all_subnets:
-            # v11 get_all_dynamic_info returns raw dicts with rao int amounts and
-            # name/symbol as int-lists (utf-8 bytes).
             netuid = int(subnet['netuid'])
             tao_in_rao = int(subnet.get('tao_in') or 0)
             alpha_in_rao = int(subnet.get('alpha_in') or 0)
@@ -317,9 +315,6 @@ class BittensorUtility():
         attempts = 10
         for i in range(attempts):
             try:
-                # v11: stake_for_coldkey_and_hotkey is gone; fetch all positions
-                # for our coldkey and filter to the requested hotkey, preserving
-                # the {netuid: stake_position} shape the callers expect.
                 positions = await asyncio.wait_for(
                     self.sub.staking.positions(coldkey_ss58=self.wallet.coldkey.ss58_address),
                     timeout=20.0

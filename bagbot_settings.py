@@ -1,11 +1,11 @@
-# Wallet credentials - only used if .env doesn't exist or doesn't have them (.env always bypasses these)
+# Wallet credentials - only used if .env doesn't exist or doesn't have them (.env ALWAYS bypasses these)
 #WALLET_PW = 'your_password_here'
 #WALLET_NAME = 'your_wallet_name_here'
 
-STAKE_ON_VALIDATOR = "5G3wMP3g3d775hauwmAZioYFVZYnvw6eY46wkFy8hEWD5KP3" #(Opentensor Foundation by default) Replace with the hotkey of the validator you want to stake with (copy from https://taostats.io/validators )
-# Note: The bot can only see and operate alpha staked on the hotkey defined above. Alpha staked on any other validator hotkey are invisible & unusable to the bot.
+STAKE_ON_VALIDATOR = "5G3wMP3g3d775hauwmAZioYFVZYnvw6eY46wkFy8hEWD5KP3" #(Opentensor Foundation by default)
+# Replace with the hotkey of the validator you want to stake with (copy from https://taostats.io/validators)
 
-MIN_TAO_IN_WALLET = 0.99
+MIN_TAO_IN_WALLET = 0.99 #Minimum balance of unstaked TAO in wallet
 MAX_TAO_PER_BUY = 0.05 #May increase as desired, I wouldnt reduce it.
 MAX_TAO_PER_SELL = 0.05 #May increase as desired, I wouldnt reduce it
 MAX_SLIPPAGE_PERCENT_PER_BUY = 0.1 #If over this slippage %, buy trades won't execute.
