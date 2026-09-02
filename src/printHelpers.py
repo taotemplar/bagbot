@@ -119,7 +119,16 @@ def print_table_rich(
     for hotkey in stake_info:
         all_netuids.update(stake_info[hotkey].keys())
 
-    for netuid in all_netuids:
+    seen = set()
+    ordered = []
+    for netuid in allowed_subnets:
+        if netuid not in seen:
+            ordered.append(netuid)
+            seen.add(netuid)
+    for netuid in sorted(n for n in all_netuids if n not in seen):
+        ordered.append(netuid)
+
+    for netuid in ordered:
         stake_amt = botInstance.my_current_stake(netuid)
 
         if netuid in stats:

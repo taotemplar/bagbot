@@ -45,21 +45,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def _is_wsl() -> bool:
+    if os.environ.get("WSL_DISTRO_NAME"):
+        return True
+    try:
+        with open("/proc/version", encoding="utf-8") as f:
+            return "microsoft" in f.read().lower()
+    except OSError:
+        return False
+
 def print_link(url: str, text: str | None = None) -> None:
-    if text is None:
-        text = url
-
-    line = f"Taoflute Portfolio link: {url}"
-
-    # Print through Rich console to ensure the link always wraps correctly
-    console.print(
-        line,
-        soft_wrap=True,
-        overflow="ignore",
-        crop=False,
-		no_wrap=True
-    )
-
+    label = text or "Taoflute Portfolio link"
+    if _is_wsl():
+        console.print(
+            f"[link={url}]{label}[/link]",
+            soft_wrap=True, overflow="ignore", crop=False, no_wrap=True,
+        )
+    else:
+        console.print(
+            f"{label}: {url}",
+            soft_wrap=True, overflow="ignore", crop=False, no_wrap=True,
+        )
 
 async def my_async_subtensor(*args, **kwargs):
     last_exc = None
@@ -403,7 +409,7 @@ class BittensorUtility():
                 for subnet_netuid in bagbot_settings.SUBNET_SETTINGS:
                     await self.do_available_trades(subnet_netuid)
 
-                logging.info(f'Finished tick {self.tick} in {time.time() - start:.2f} seconds')                
+                logging.info(f'Finished tick {self.tick} in {time.time() - start:.2f} seconds')
                 try:
                     logger.info(f'Tick {self.tick}: Waiting for next block')
                     await asyncio.wait_for(self.sub.wait_for_block(), timeout=30.0)
