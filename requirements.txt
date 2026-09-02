@@ -2,3 +2,4 @@ websockets
 rich
 bittensor
 python-dotenv
+async-substrate-interface

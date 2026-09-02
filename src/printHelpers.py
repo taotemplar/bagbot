@@ -7,7 +7,7 @@ from settings_loader import bagbot_settings
 import traceback
 from theme import get_theme
 
-def price_proximity_bar(buyprice, sellprice, currentprice, bar_width=24):
+def price_proximity_bar(buyprice, sellprice, currentprice, bar_width=20):
     """
     Generate an ASCII bar showing how close currentprice is to buyprice or sellprice,
     with the bar scaled to always include all three prices.
